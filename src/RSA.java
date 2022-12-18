@@ -1,9 +1,15 @@
 import java.util.*;
 import java.io.*;
 
-public class RSAEncryptor 
+public class RSA
 {
-public static void main(String[] args) throws Exception 
+
+public RSA()
+{
+}
+
+//Takes an array of characters and encrypts it
+public void encrypt(char[] input) throws Exception 
 {
     ArrayList<Integer> lop = listOfPrimes();
     Scanner in = new Scanner(System.in);
@@ -44,19 +50,22 @@ public static void main(String[] args) throws Exception
     System.out.println("d = " + d);
     System.out.println("ed (mod " + p1q1 + ") = " + ((e*d) % p1q1));
 
-    //Now we get M
-    System.out.print("Please enter a numeric message between 0 (inclusive) and " + n + " (exclusive): ");
-    long M = in.nextInt();
-    System.out.println("Message: " + M);
+    //Now we can take the ArrayList input and do M^e = C, and put each character into the file
 
-    //Now we must compute M^e = C (mod n), 0 <= C < n
-    //The reason why we don't do Math.pow is that the numbers are just so big,
-    //we would actually lose data just by doing that (bit overflow), so we made a loop
-    long C = getC(M, e, n);
-    System.out.println("C = " + C);
+    char[] cinput = input;
+    FileWriter fw = new FileWriter("Encrypted");
+	PrintWriter pw = new PrintWriter(fw);
+    long M = 0;
 
-    //NOW, C is our encrypted message!
-    //Let's go ahead and put C into a file along with the Private key for future decryption!
+    //Let's first put in the decryption key
+    pw.println(d);
+    pw.println(n);
+
+    for(int i = 0; i < cinput.length; i++)
+    {
+        M = (int)cinput[i];
+        pw.println(getC(M, e, n));
+    }
     
     //In an actual application of RSA, what would happen is that the
     //public and private keys are made by A, the public key is given to B
@@ -65,21 +74,55 @@ public static void main(String[] args) throws Exception
     //is ONLY used for encryption, NOT decryption, so Eavesdroppers cannot
     //parse out the message
 
-    FileWriter fw = new FileWriter("Encrypted");
-	PrintWriter pw = new PrintWriter(fw);
-
     //Public Key (e,n)
     //Private Key (d,n)
-    
-    pw.println(d);
-    pw.println(n);
-    pw.println(C);
-    pw.println("Actual Message M for comparison: " + M);
+
+    System.out.println("Done!");
 
     pw.close();
     fw.close();
     in.close();
 }
+
+
+//Takes a file and decrypts it
+public void decrypt() throws IOException
+    {
+        //Scan the encrypted file to get the keys and hidden message
+        Scanner in = new Scanner(new File("Encrypted"));
+
+        long d = Integer.parseInt(in.next());
+        long n = Integer.parseInt(in.next());
+
+        //Now the rest of the file contains the encrypted message
+
+        System.out.println(d);
+        System.out.println(n);
+
+        //Now, solve for R, which is R^d % n
+        //Again, same reason why we can't just do Math.pow,
+        //the number just gets too big and so we'de lose data
+
+        //Here, we will loop through the file, and put the output into a file
+        FileWriter fw = new FileWriter("Decrypted");
+	    PrintWriter pw = new PrintWriter(fw);
+        long C = 0;
+        String OM = "";
+
+        while(in.hasNext())
+        {
+            C = in.nextInt();
+            long R = getR(C, d, n);
+            System.out.println(R);
+            OM = OM + (char)R;
+        }
+
+        pw.println(OM);
+
+        pw.close();
+        fw.close();
+        in.close();
+    }
 
 //This creates a "table" of primes that we can randomly choose
 public static ArrayList<Integer> listOfPrimes()
@@ -198,4 +241,21 @@ public static long getC(long M, long e, long n)
 
     return C;
 }
+
+//Loop to get R
+public static long getR(long C, long d, long n)
+{
+    long base = C, power = d, newN = n;
+    long R = 1;
+
+    //Running loop while the power > 0
+    while (power != 0) 
+    {
+        R = ((R * base) % newN);
+        //Power will get reduced after each multiplication
+        power--;
+    }
+
+    return R;
+}  
 }
