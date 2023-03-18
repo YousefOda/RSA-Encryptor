@@ -4,20 +4,23 @@ import java.io.IOException;
 import javax.swing.*;
 
 // Frame for user input and interaction
-public class Frame extends JFrame implements ActionListener{
-
+public class Frame extends JFrame implements ActionListener
+{
+    // Buttons
     JButton encrypt;
     JButton decrypt;
 
+    // User typeable text area
     JTextArea type;
 
+    // Frame
     JFrame frame;
 
     RSA enc = new RSA();
 
     Frame() throws IOException
-    
     {
+        // Setup for the frame
         encrypt = new JButton("Encrypt");
         encrypt.setBounds(10, 250, 150, 50);
         encrypt.addActionListener(this);
@@ -41,8 +44,7 @@ public class Frame extends JFrame implements ActionListener{
         frame.add(type);
     }
 
-
-
+    // What happens when a button is pressed
     public void actionPerformed(ActionEvent e)
     {
          
@@ -55,9 +57,9 @@ public class Frame extends JFrame implements ActionListener{
             {
                 enc.encrypt(cinput);
             } 
-            catch (Exception e1) 
+            catch (Exception exception) 
             {
-                e1.printStackTrace();
+                exception.printStackTrace();
             }
         }
 
@@ -65,17 +67,13 @@ public class Frame extends JFrame implements ActionListener{
         {
             try 
             {
-                enc.decrypt();
+                enc.decrypt(type.getText());
             } 
 
-            catch (IOException e1) 
+            catch (IOException exception) 
             {
-                e1.printStackTrace();
+                exception.printStackTrace();
             }
-            
-            
         }
-        
     }
-
 }
